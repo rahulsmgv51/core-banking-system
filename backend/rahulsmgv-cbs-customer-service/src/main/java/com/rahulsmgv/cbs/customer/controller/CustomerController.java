@@ -59,13 +59,18 @@ public class CustomerController {
     @PostMapping
     public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CreateCustomerCommand command) {
 
-        log.info("Received create customer request");
+        log.info(
+                "Execution step started: createCustomer for email={}, mobile={}",
+                command.emailAddress(),
+                command.mobileNumber());
 
         // Execute the Create Customer use case.
         CustomerResponse response = customerApplicationService
                 .createCustomer(command);
 
-        log.info("Create customer request completed for customerId={}", response.customerId());
+        log.info(
+                "Execution step completed: createCustomer for customerId={}",
+                response.customerId());
 
         // Return HTTP 201 CREATED with the created customer.
         return ResponseEntity
@@ -82,12 +87,12 @@ public class CustomerController {
     @GetMapping("/{customerId}")
         public ResponseEntity<CustomerResponse> getCustomer(@PathVariable("customerId") Long customerId) {
 
-        log.info("Received get customer request for customerId={}", customerId);
+        log.info("Execution step started: getCustomer for customerId={}", customerId);
 
         CustomerResponse response = customerApplicationService
                 .getCustomer(customerId);
 
-        log.info("Get customer request completed for customerId={}", customerId);
+        log.info("Execution step completed: getCustomer for customerId={}", customerId);
 
         return ResponseEntity.ok(response);
     }
@@ -110,7 +115,10 @@ public class CustomerController {
         public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable("customerId") Long customerId,
             @Valid @RequestBody UpdateCustomerCommand command) {
 
-        log.info("Received update customer request for customerId={}", customerId);
+        log.info(
+                "Execution step started: updateCustomer for customerId={}, email={}",
+                customerId,
+                command.emailAddress());
 
         // Convert the path variable into UUID.
         Long id = customerId;
@@ -118,7 +126,7 @@ public class CustomerController {
         // Execute the Update Customer use case.
         CustomerResponse response = customerApplicationService.updateCustomer(id, command);
 
-        log.info("Update customer request completed for customerId={}", customerId);
+        log.info("Execution step completed: updateCustomer for customerId={}", customerId);
 
         // Return HTTP 200 OK with the updated customer.
         return ResponseEntity.ok(response);
@@ -139,7 +147,7 @@ public class CustomerController {
             @PathVariable("customerId") Long customerId) {
 
         log.info(
-                "Received delete customer request for customerId={}",
+                "Execution step started: deleteCustomer for customerId={}",
                 customerId);
 
         // Convert the path variable into UUID.
@@ -149,7 +157,7 @@ public class CustomerController {
         customerApplicationService.deleteCustomer(id);
 
         log.info(
-                "Delete customer request completed for customerId={}",
+                "Execution step completed: deleteCustomer for customerId={}",
                 customerId);
 
         // Customer was successfully deleted.
@@ -167,7 +175,7 @@ public class CustomerController {
             @PathVariable("customerId") Long customerId) {
 
         log.info(
-                "Received activate customer request for customerId={}",
+                "Execution step started: activateCustomer for customerId={}",
                 customerId);
 
         Long id = customerId;
@@ -175,8 +183,9 @@ public class CustomerController {
         CustomerResponse response = customerApplicationService.activateCustomer(id);
 
         log.info(
-                "Activate customer request completed for customerId={}",
-                customerId);
+                "Execution step completed: activateCustomer for customerId={}, status={}",
+                customerId,
+                response.status());
 
         return ResponseEntity.ok(response);
     }
@@ -192,7 +201,7 @@ public class CustomerController {
             @PathVariable("customerId") Long customerId) {
 
         log.info(
-                "Received suspend customer request for customerId={}",
+                "Execution step started: suspendCustomer for customerId={}",
                 customerId);
 
         Long id = customerId;
@@ -200,8 +209,9 @@ public class CustomerController {
         CustomerResponse response = customerApplicationService.suspendCustomer(id);
 
         log.info(
-                "Suspend customer request completed for customerId={}",
-                customerId);
+                "Execution step completed: suspendCustomer for customerId={}, status={}",
+                customerId,
+                response.status());
 
         return ResponseEntity.ok(response);
     }
@@ -217,7 +227,7 @@ public class CustomerController {
             @PathVariable("customerId") Long customerId) {
 
         log.info(
-                "Received block customer request for customerId={}",
+                "Execution step started: blockCustomer for customerId={}",
                 customerId);
 
         Long id = customerId;
@@ -225,8 +235,9 @@ public class CustomerController {
         CustomerResponse response = customerApplicationService.blockCustomer(id);
 
         log.info(
-                "Block customer request completed for customerId={}",
-                customerId);
+                "Execution step completed: blockCustomer for customerId={}, status={}",
+                customerId,
+                response.status());
 
         return ResponseEntity.ok(response);
     }
@@ -242,7 +253,7 @@ public class CustomerController {
             @PathVariable("customerId") Long customerId) {
 
         log.info(
-                "Received deactivate customer request for customerId={}",
+                "Execution step started: deactivateCustomer for customerId={}",
                 customerId);
 
         Long id = customerId;
@@ -250,8 +261,9 @@ public class CustomerController {
         CustomerResponse response = customerApplicationService.deactivateCustomer(id);
 
         log.info(
-                "Deactivate customer request completed for customerId={}",
-                customerId);
+                "Execution step completed: deactivateCustomer for customerId={}, status={}",
+                customerId,
+                response.status());
 
         return ResponseEntity.ok(response);
     }
@@ -267,7 +279,7 @@ public class CustomerController {
             @PathVariable("customerId") Long customerId) {
 
         log.info(
-                "Received close customer request for customerId={}",
+                "Execution step started: closeCustomer for customerId={}",
                 customerId);
 
         Long id = customerId;
@@ -275,8 +287,9 @@ public class CustomerController {
         CustomerResponse response = customerApplicationService.closeCustomer(id);
 
         log.info(
-                "Close customer request completed for customerId={}",
-                customerId);
+                "Execution step completed: closeCustomer for customerId={}, status={}",
+                customerId,
+                response.status());
 
         return ResponseEntity.ok(response);
     }

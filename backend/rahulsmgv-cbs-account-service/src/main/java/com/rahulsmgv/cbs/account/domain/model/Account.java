@@ -6,6 +6,7 @@ import com.rahulsmgv.cbs.account.domain.valueobject.AccountId;
 import com.rahulsmgv.cbs.account.domain.valueobject.AccountNumber;
 import com.rahulsmgv.cbs.account.domain.valueobject.Balance;
 import com.rahulsmgv.cbs.account.domain.valueobject.Currency;
+import com.rahulsmgv.cbs.account.domain.valueobject.CustomerId;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -13,27 +14,21 @@ import java.util.Objects;
 public class Account {
 
     private final AccountId accountId;
-
     private final AccountNumber accountNumber;
-
-    private final Long customerId;
-
+    private final CustomerId customerId;
     private final AccountType accountType;
-
     private final Currency currency;
 
     private Balance balance;
-
     private AccountStatus status;
 
     private final Instant createdAt;
-
     private Instant updatedAt;
 
     private Account(
             AccountId accountId,
             AccountNumber accountNumber,
-            Long customerId,
+            CustomerId customerId,
             AccountType accountType,
             Currency currency,
             Balance balance,
@@ -55,16 +50,9 @@ public class Account {
     public static Account create(
             AccountId accountId,
             AccountNumber accountNumber,
-            Long customerId,
+            CustomerId customerId,
             AccountType accountType,
             Currency currency) {
-
-        Objects.requireNonNull(customerId);
-
-        if (customerId <= 0) {
-            throw new IllegalArgumentException(
-                    "Customer ID must be greater than zero");
-        }
 
         Instant now = Instant.now();
 
@@ -88,7 +76,7 @@ public class Account {
         return accountNumber;
     }
 
-    public Long customerId() {
+    public CustomerId customerId() {
         return customerId;
     }
 
@@ -129,7 +117,6 @@ public class Account {
         }
 
         status = AccountStatus.ACTIVE;
-
         touch();
     }
 
@@ -141,7 +128,6 @@ public class Account {
         }
 
         status = AccountStatus.FROZEN;
-
         touch();
     }
 
@@ -153,7 +139,6 @@ public class Account {
         }
 
         status = AccountStatus.DORMANT;
-
         touch();
     }
 
@@ -165,7 +150,6 @@ public class Account {
         }
 
         status = AccountStatus.CLOSED;
-
         touch();
     }
 
@@ -199,16 +183,10 @@ public class Account {
         updatedAt = Instant.now();
     }
 
-    /**
-     * Reconstructs an Account aggregate from persisted data.
-     *
-     * Used by the persistence layer when loading an
-     * existing account from the database.
-     */
     public static Account rehydrate(
             AccountId accountId,
             AccountNumber accountNumber,
-            Long customerId,
+            CustomerId customerId,
             AccountType accountType,
             Currency currency,
             Balance balance,

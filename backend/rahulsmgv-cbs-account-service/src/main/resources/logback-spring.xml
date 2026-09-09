@@ -2,11 +2,13 @@
 <configuration scan="true" scanPeriod="30 seconds">
 
     <springProperty scope="context" name="LOG_PATH" source="logging.file.path" defaultValue="logs" />
-    <springProperty scope="context" name="LOG_FILE" source="logging.file.name" defaultValue="${LOG_PATH}/customer-service.log" />
+    <springProperty scope="context" name="LOG_FILE" source="logging.file.name" defaultValue="${LOG_PATH}/account-service.log" />
+
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n" />
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+            <pattern>${LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
@@ -19,7 +21,7 @@
             <totalSizeCap>250MB</totalSizeCap>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+            <pattern>${LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
@@ -28,7 +30,7 @@
         <appender-ref ref="FILE" />
     </root>
 
-    <logger name="com.rahulsmgv.cbs.customer" level="INFO" additivity="false">
+    <logger name="com.rahulsmgv.cbs.account" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="FILE" />
     </logger>

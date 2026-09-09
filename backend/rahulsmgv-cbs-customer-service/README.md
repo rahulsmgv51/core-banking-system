@@ -255,6 +255,34 @@ To exercise lifecycle behavior cleanly, use this sequence:
 | POST | `/api/v1/customers/{customerId}/deactivate` |
 | POST | `/api/v1/customers/{customerId}/close` |
 
+## Load test data
+
+To seed sample customer records quickly for local testing, run:
+
+```bash
+cd /home/os00570/core-banking-system/backend/rahulsmgv-cbs-customer-service
+podman exec -i cbs-postgres psql -h localhost -U cbs_user -d cbs < scripts/load-test-data.sql
+```
+
+This script:
+
+- clears the existing `public.customers` rows
+- resets the `customer_id_sequence` to start at `10000000001`
+- inserts a small dataset of customers in different lifecycle states
+
+Example values loaded:
+
+- `rahul.customer1@example.com`
+- `priya.business@example.com`
+- `amit.joint@example.com`
+- `sneha.individual@example.com`
+
+You can verify the rows with:
+
+```bash
+podman exec -i cbs-postgres psql -h localhost -U cbs_user -d cbs -c "SELECT customer_id, name, status, email_address FROM public.customers ORDER BY customer_id;"
+```
+
 ## Validation
 
 The project has a verified test suite and can be run with:

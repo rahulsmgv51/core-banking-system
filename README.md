@@ -505,7 +505,7 @@ This keeps the core business logic independent from frameworks and infrastructur
 
 # 🔌 External Banking Integration
 
-The platform is designed to integrate with existing banking systems such as **Finacle** and other external financial infrastructure.
+The platform is designed to integrate with existing banking systems such as **CoreBanking** and other external financial infrastructure.
 
 A typical integration flow is:
 
@@ -534,7 +534,7 @@ CBS API
 The integration layer can support dynamic external API routing such as:
 
 ```text
-/finacle-rest-api/**
+/corebanking-rest-api/**
 ```
 
 and transformation between JSON-based CBS APIs and XML-based external banking APIs.
@@ -794,7 +794,7 @@ Container tooling can be used through Docker/Podman depending on the development
 | Build                | Maven                          |
 | API                  | REST                           |
 | Integration          | JSON / XML                     |
-| External Banking     | Finacle / Banking APIs         |
+| External Banking     | Banking APIs                   |
 
 ---
 
@@ -1170,7 +1170,7 @@ Business Domains
 
 Integration
 ├── API Gateway
-├── Finacle Integration
+├── Core Integration
 └── External Banking APIs
 
 Operations

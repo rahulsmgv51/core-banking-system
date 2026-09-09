@@ -4,9 +4,8 @@ import com.rahulsmgv.cbs.account.domain.enums.AccountStatus;
 import com.rahulsmgv.cbs.account.domain.enums.AccountType;
 import com.rahulsmgv.cbs.account.domain.valueobject.AccountId;
 import com.rahulsmgv.cbs.account.domain.valueobject.AccountNumber;
-import com.rahulsmgv.cbs.account.domain.valueobject.Balance;
 import com.rahulsmgv.cbs.account.domain.valueobject.Currency;
-
+import com.rahulsmgv.cbs.account.domain.valueobject.CustomerId;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -15,165 +14,165 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AccountTest {
 
-    private Account createAccount() {
+        private Account createAccount() {
 
-        return Account.create(
-                AccountId.of(10000000001L),
-                AccountNumber.of("123456789012"),
-                10000000017L,
-                AccountType.SAVINGS,
-                Currency.inr());
-    }
+                return Account.create(
+                                AccountId.of(10000000001L),
+                                AccountNumber.of("123456789012"),
+                                CustomerId.of(10000000017L),
+                                AccountType.SAVINGS,
+                                Currency.inr());
+        }
 
-    @Test
-    void shouldCreateAccountWithPendingStatus() {
+        @Test
+        void shouldCreateAccountWithPendingStatus() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        assertNotNull(account.accountId());
-        assertNotNull(account.accountNumber());
+                assertNotNull(account.accountId());
+                assertNotNull(account.accountNumber());
 
-        assertEquals(
-                AccountStatus.PENDING,
-                account.status());
+                assertEquals(
+                                AccountStatus.PENDING,
+                                account.status());
 
-        assertEquals(
-                BigDecimal.ZERO,
-                account.balance().amount());
-    }
+                assertEquals(
+                                BigDecimal.ZERO,
+                                account.balance().amount());
+        }
 
-    @Test
-    void shouldActivateAccount() {
+        @Test
+        void shouldActivateAccount() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        account.activate();
+                account.activate();
 
-        assertEquals(
-                AccountStatus.ACTIVE,
-                account.status());
-    }
+                assertEquals(
+                                AccountStatus.ACTIVE,
+                                account.status());
+        }
 
-    @Test
-    void shouldCreditActiveAccount() {
+        @Test
+        void shouldCreditActiveAccount() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        account.activate();
+                account.activate();
 
-        account.credit(
-                new BigDecimal("1000.00"));
+                account.credit(
+                                new BigDecimal("1000.00"));
 
-        assertEquals(
-                new BigDecimal("1000.00"),
-                account.balance().amount());
-    }
+                assertEquals(
+                                new BigDecimal("1000.00"),
+                                account.balance().amount());
+        }
 
-    @Test
-    void shouldDebitActiveAccount() {
+        @Test
+        void shouldDebitActiveAccount() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        account.activate();
+                account.activate();
 
-        account.credit(
-                new BigDecimal("1000.00"));
+                account.credit(
+                                new BigDecimal("1000.00"));
 
-        account.debit(
-                new BigDecimal("250.00"));
+                account.debit(
+                                new BigDecimal("250.00"));
 
-        assertEquals(
-                new BigDecimal("750.00"),
-                account.balance().amount());
-    }
+                assertEquals(
+                                new BigDecimal("750.00"),
+                                account.balance().amount());
+        }
 
-    @Test
-    void shouldNotDebitMoreThanBalance() {
+        @Test
+        void shouldNotDebitMoreThanBalance() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        account.activate();
+                account.activate();
 
-        account.credit(
-                new BigDecimal("1000.00"));
+                account.credit(
+                                new BigDecimal("1000.00"));
 
-        assertThrows(
-                IllegalStateException.class,
-                () -> account.debit(
-                        new BigDecimal("1500.00")));
-    }
+                assertThrows(
+                                IllegalStateException.class,
+                                () -> account.debit(
+                                                new BigDecimal("1500.00")));
+        }
 
-    @Test
-    void shouldFreezeAccount() {
+        @Test
+        void shouldFreezeAccount() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        account.activate();
-        account.freeze();
+                account.activate();
+                account.freeze();
 
-        assertEquals(
-                AccountStatus.FROZEN,
-                account.status());
-    }
+                assertEquals(
+                                AccountStatus.FROZEN,
+                                account.status());
+        }
 
-    @Test
-    void shouldMakeAccountDormant() {
+        @Test
+        void shouldMakeAccountDormant() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        account.activate();
-        account.makeDormant();
+                account.activate();
+                account.makeDormant();
 
-        assertEquals(
-                AccountStatus.DORMANT,
-                account.status());
-    }
+                assertEquals(
+                                AccountStatus.DORMANT,
+                                account.status());
+        }
 
-    @Test
-    void shouldCloseAccount() {
+        @Test
+        void shouldCloseAccount() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        account.activate();
-        account.close();
+                account.activate();
+                account.close();
 
-        assertEquals(
-                AccountStatus.CLOSED,
-                account.status());
-    }
+                assertEquals(
+                                AccountStatus.CLOSED,
+                                account.status());
+        }
 
-    @Test
-    void shouldNotActivateClosedAccount() {
+        @Test
+        void shouldNotActivateClosedAccount() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        account.close();
+                account.close();
 
-        assertThrows(
-                IllegalStateException.class,
-                account::activate);
-    }
+                assertThrows(
+                                IllegalStateException.class,
+                                account::activate);
+        }
 
-    @Test
-    void shouldNotFreezeClosedAccount() {
+        @Test
+        void shouldNotFreezeClosedAccount() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        account.close();
+                account.close();
 
-        assertThrows(
-                IllegalStateException.class,
-                account::freeze);
-    }
+                assertThrows(
+                                IllegalStateException.class,
+                                account::freeze);
+        }
 
-    @Test
-    void shouldNotCreditInactiveAccount() {
+        @Test
+        void shouldNotCreditInactiveAccount() {
 
-        Account account = createAccount();
+                Account account = createAccount();
 
-        assertThrows(
-                IllegalStateException.class,
-                () -> account.credit(
-                        new BigDecimal("1000.00")));
-    }
+                assertThrows(
+                                IllegalStateException.class,
+                                () -> account.credit(
+                                                new BigDecimal("1000.00")));
+        }
 }

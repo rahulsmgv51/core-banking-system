@@ -48,7 +48,10 @@ public class CustomerApplicationService {
         public CustomerResponse createCustomer(
                         CreateCustomerCommand command) {
 
-                log.info("Creating customer");
+                log.info(
+                                "Execution step started: createCustomer for email={}, mobile={}",
+                                command.emailAddress(),
+                                command.mobileNumber());
 
                 if (customerRepository.existsByEmailAddress(
                                 command.emailAddress())) {
@@ -83,13 +86,16 @@ public class CustomerApplicationService {
                 Customer savedCustomer = customerRepository.save(customer);
 
                 log.info(
-                                "Customer persisted successfully with customerId={}",
-                                savedCustomer.customerId().value());
+                                "Execution step completed: createCustomer for customerId={}, status={}",
+                                savedCustomer.customerId().value(),
+                                savedCustomer.status());
 
                 return toResponse(savedCustomer);
         }
 
         public CustomerResponse getCustomer(Long customerId) {
+
+                log.info("Execution step started: getCustomer for customerId={}", customerId);
 
                 CustomerId id = CustomerId.of(customerId);
 
@@ -98,7 +104,10 @@ public class CustomerApplicationService {
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Customer not found: " + customerId));
 
-                log.info("Customer retrieved successfully for customerId={}", customerId);
+                log.info(
+                                "Execution step completed: getCustomer for customerId={}, status={}",
+                                customerId,
+                                customer.status());
 
                 return toResponse(customer);
         }
@@ -123,7 +132,10 @@ public class CustomerApplicationService {
          */
         public CustomerResponse updateCustomer(Long customerId, UpdateCustomerCommand command) {
 
-                log.info("Updating customer for customerId={}", customerId);
+                log.info(
+                                "Execution step started: updateCustomer for customerId={}, email={}",
+                                customerId,
+                                command.emailAddress());
 
                 // Convert the UUID into the domain-specific CustomerId.
                 CustomerId id = CustomerId.of(customerId);
@@ -190,7 +202,10 @@ public class CustomerApplicationService {
                 // Persist the updated aggregate.
                 Customer updatedCustomer = customerRepository.save(customer);
 
-                log.info("Customer updated successfully with customerId={}", updatedCustomer.customerId().value());
+                log.info(
+                                "Execution step completed: updateCustomer for customerId={}, status={}",
+                                updatedCustomer.customerId().value(),
+                                updatedCustomer.status());
 
                 // Convert the domain object into an API response.
                 return toResponse(updatedCustomer);
@@ -212,7 +227,7 @@ public class CustomerApplicationService {
          */
         public void deleteCustomer(Long customerId) {
 
-                log.info("Deleting customer with customerId={}", customerId);
+                log.info("Execution step started: deleteCustomer for customerId={}", customerId);
 
                 CustomerId id = CustomerId.of(customerId);
 
@@ -224,7 +239,7 @@ public class CustomerApplicationService {
                 customerRepository.delete(customer);
 
                 log.info(
-                                "Customer deleted successfully with customerId={}",
+                                "Execution step completed: deleteCustomer for customerId={}",
                                 customerId);
         }
 
@@ -257,7 +272,7 @@ public class CustomerApplicationService {
          */
         public CustomerResponse activateCustomer(Long customerId) {
 
-                log.info("Activating customer with customerId={}", customerId);
+                log.info("Execution step started: activateCustomer for customerId={}", customerId);
 
                 Customer customer = customerRepository
                                 .findById(CustomerId.of(customerId))
@@ -271,8 +286,9 @@ public class CustomerApplicationService {
                 Customer savedCustomer = customerRepository.save(customer);
 
                 log.info(
-                                "Customer activated successfully with customerId={}",
-                                customerId);
+                                "Execution step completed: activateCustomer for customerId={}, status={}",
+                                customerId,
+                                savedCustomer.status());
 
                 return toResponse(savedCustomer);
         }
@@ -282,7 +298,7 @@ public class CustomerApplicationService {
          */
         public CustomerResponse suspendCustomer(Long customerId) {
 
-                log.info("Suspending customer with customerId={}", customerId);
+                log.info("Execution step started: suspendCustomer for customerId={}", customerId);
 
                 Customer customer = customerRepository
                                 .findById(CustomerId.of(customerId))
@@ -294,8 +310,9 @@ public class CustomerApplicationService {
                 Customer savedCustomer = customerRepository.save(customer);
 
                 log.info(
-                                "Customer suspended successfully with customerId={}",
-                                customerId);
+                                "Execution step completed: suspendCustomer for customerId={}, status={}",
+                                customerId,
+                                savedCustomer.status());
 
                 return toResponse(savedCustomer);
         }
@@ -305,7 +322,7 @@ public class CustomerApplicationService {
          */
         public CustomerResponse blockCustomer(Long customerId) {
 
-                log.info("Blocking customer with customerId={}", customerId);
+                log.info("Execution step started: blockCustomer for customerId={}", customerId);
 
                 Customer customer = customerRepository
                                 .findById(CustomerId.of(customerId))
@@ -317,8 +334,9 @@ public class CustomerApplicationService {
                 Customer savedCustomer = customerRepository.save(customer);
 
                 log.info(
-                                "Customer blocked successfully with customerId={}",
-                                customerId);
+                                "Execution step completed: blockCustomer for customerId={}, status={}",
+                                customerId,
+                                savedCustomer.status());
 
                 return toResponse(savedCustomer);
         }
@@ -328,7 +346,7 @@ public class CustomerApplicationService {
          */
         public CustomerResponse deactivateCustomer(Long customerId) {
 
-                log.info("Deactivating customer with customerId={}", customerId);
+                log.info("Execution step started: deactivateCustomer for customerId={}", customerId);
 
                 Customer customer = customerRepository
                                 .findById(CustomerId.of(customerId))
@@ -340,8 +358,9 @@ public class CustomerApplicationService {
                 Customer savedCustomer = customerRepository.save(customer);
 
                 log.info(
-                                "Customer deactivated successfully with customerId={}",
-                                customerId);
+                                "Execution step completed: deactivateCustomer for customerId={}, status={}",
+                                customerId,
+                                savedCustomer.status());
 
                 return toResponse(savedCustomer);
         }
@@ -353,7 +372,7 @@ public class CustomerApplicationService {
          */
         public CustomerResponse closeCustomer(Long customerId) {
 
-                log.info("Closing customer with customerId={}", customerId);
+                log.info("Execution step started: closeCustomer for customerId={}", customerId);
 
                 Customer customer = customerRepository
                                 .findById(CustomerId.of(customerId))
@@ -365,8 +384,9 @@ public class CustomerApplicationService {
                 Customer savedCustomer = customerRepository.save(customer);
 
                 log.info(
-                                "Customer closed successfully with customerId={}",
-                                customerId);
+                                "Execution step completed: closeCustomer for customerId={}, status={}",
+                                customerId,
+                                savedCustomer.status());
 
                 return toResponse(savedCustomer);
         }
