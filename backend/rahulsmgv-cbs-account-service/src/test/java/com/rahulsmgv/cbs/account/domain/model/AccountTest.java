@@ -143,9 +143,8 @@ class AccountTest {
 
         @Test
         void shouldNotActivateClosedAccount() {
-
                 Account account = createAccount();
-
+                account.activate();
                 account.close();
 
                 assertThrows(
@@ -155,14 +154,124 @@ class AccountTest {
 
         @Test
         void shouldNotFreezeClosedAccount() {
-
                 Account account = createAccount();
-
+                account.activate();
                 account.close();
 
                 assertThrows(
                                 IllegalStateException.class,
                                 account::freeze);
+        }
+
+        @Test
+        void shouldUnfreezeFrozenAccount() {
+
+                Account account = createAccount();
+
+                account.activate();
+                account.freeze();
+
+                account.unfreeze();
+
+                assertEquals(
+                                AccountStatus.ACTIVE,
+                                account.status());
+        }
+
+        @Test
+        void shouldReactivateDormantAccount() {
+
+                Account account = createAccount();
+
+                account.activate();
+                account.makeDormant();
+
+                account.activate();
+
+                assertEquals(
+                                AccountStatus.ACTIVE,
+                                account.status());
+        }
+
+        @Test
+        void shouldNotFreezePendingAccount() {
+
+                Account account = createAccount();
+
+                assertThrows(
+                                IllegalStateException.class,
+                                account::freeze);
+        }
+
+        @Test
+        void shouldNotMakePendingAccountDormant() {
+
+                Account account = createAccount();
+
+                assertThrows(
+                                IllegalStateException.class,
+                                account::makeDormant);
+        }
+
+        @Test
+        void shouldNotClosePendingAccount() {
+
+                Account account = createAccount();
+
+                assertThrows(
+                                IllegalStateException.class,
+                                account::close);
+        }
+
+        @Test
+        void shouldNotMakeFrozenAccountDormant() {
+
+                Account account = createAccount();
+
+                account.activate();
+                account.freeze();
+
+                assertThrows(
+                                IllegalStateException.class,
+                                account::makeDormant);
+        }
+
+        @Test
+        void shouldNotFreezeDormantAccount() {
+
+                Account account = createAccount();
+
+                account.activate();
+                account.makeDormant();
+
+                assertThrows(
+                                IllegalStateException.class,
+                                account::freeze);
+        }
+
+        @Test
+        void shouldNotUnfreezeActiveAccount() {
+
+                Account account = createAccount();
+
+                account.activate();
+
+                assertThrows(
+                                IllegalStateException.class,
+                                account::unfreeze);
+        }
+
+        @Test
+        void shouldNotUnfreezeClosedAccount() {
+
+                Account account = createAccount();
+
+                account.activate();
+                account.close();
+
+                assertThrows(
+                                IllegalStateException.class,
+                                account::unfreeze);
         }
 
         @Test

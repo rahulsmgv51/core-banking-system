@@ -1,36 +1,117 @@
 package com.rahulsmgv.cbs.account.exception;
 
+import com.rahulsmgv.cbs.account.api.ApiErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import jakarta.persistence.EntityNotFoundException;
-
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("timestamp", Instant.now());
-        error.put("status", HttpStatus.CONFLICT.value());
-        error.put("error", "Conflict");
-        error.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleAccountNotFound(
+            AccountNotFoundException exception,
+            HttpServletRequest request) {
+
+        return buildResponse(
+                HttpStatus.NOT_FOUND,
+                "ACCOUNT_NOT_FOUND",
+                exception.getMessage(),
+                request);
     }
 
-    @ExceptionHandler(EntityNotFoundException.class) // If you have this
-    public ResponseEntity<Map<String, Object>> handleNotFound(RuntimeException ex) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("timestamp", Instant.now());
-        error.put("status", HttpStatus.NOT_FOUND.value());
-        error.put("error", "Not Found");
-        error.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    @ExceptionHandler(DuplicateAccountException.class)
+    public ResponseEntity<ApiErrorResponse> handleDuplicateAccount(
+            DuplicateAccountException exception,
+            HttpServletRequest request) {
+
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                "ACCOUNT_ALREADY_EXISTS",
+                exception.getMessage(),
+                request);
+    }
+
+    @ExceptionHandler(AccountOperationException.class)
+    public ResponseEntity<ApiErrorResponse> handleAccountOperation(
+            AccountOperationException exception,
+            HttpServletRequest request) {
+
+        return buildResponse(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "ACCOUNT_OPERATION_FAILED",
+                exception.getMessage(),
+                request);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalArgument(
+            IllegalArgumentException exception,
+            HttpServletRequest request) {
+
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                "INVALID_REQUEST",
+                exception.getMessage(),
+                request);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalState(
+            IllegalStateException exception,
+            HttpServletRequest request) {
+
+        return buildResponse(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "INVALID_ACCOUNT_STATE",
+                exception.getMessage(),
+                request);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiErrorResponse> handleUnexpectedException(
+            Exception exception,
+            HttpServletRequest request) {
+
+        return buildResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "INTERNAL_SERVER_ERROR",
+                "An unexpected error occurred",
+                request);
+    }
+
+    private ResponseEntity<ApiErrorResponse> buildResponse(
+            HttpStatus status,
+            String error,
+            String message,
+            HttpServletRequest request) {
+
+        String traceId = resolveTraceId(request);
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                Instant.now(),
+                status.value(),
+                error,
+                message,
+                request.getRequestURI(),
+                traceId);
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    private String resolveTraceId(HttpServletRequest request) {
+
+        String traceId = request.getHeader("X-Correlation-Id");
+
+        if (traceId == null || traceId.isBlank()) {
+            traceId = request.getHeader("traceId");
+        }
+
+        return traceId;
     }
 }

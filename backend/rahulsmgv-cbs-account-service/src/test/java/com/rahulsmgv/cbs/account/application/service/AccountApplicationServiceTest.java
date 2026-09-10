@@ -16,269 +16,225 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import com.rahulsmgv.cbs.account.exception.AccountNotFoundException;
+import com.rahulsmgv.cbs.account.exception.DuplicateAccountException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AccountApplicationServiceTest {
 
-    @Mock
-    private AccountRepository accountRepository;
-
-    @Mock
-    private AccountIdGenerator accountIdGenerator;
-
-    @Mock
-    private AccountNumberGenerator accountNumberGenerator;
-
-    private AccountApplicationService service;
-
-    @BeforeEach
-    void setUp() {
-        service = new AccountApplicationService(
-                accountRepository,
-                accountIdGenerator,
-                accountNumberGenerator);
-    }
-
-    @Test
-    void shouldCreateAccount() {
-
-        CreateAccountCommand command =
-                new CreateAccountCommand(
-                        10000000017L,
-                        AccountType.SAVINGS,
-                        "INR");
+        @Mock
+        private AccountRepository accountRepository;
+
+        @Mock
+        private AccountIdGenerator accountIdGenerator;
+
+        @Mock
+        private AccountNumberGenerator accountNumberGenerator;
+
+        private AccountApplicationService service;
+
+        @BeforeEach
+        void setUp() {
+                service = new AccountApplicationService(
+                                accountRepository,
+                                accountIdGenerator,
+                                accountNumberGenerator);
+        }
+
+        @Test
+        void shouldCreateAccount() {
+
+                CreateAccountCommand command = new CreateAccountCommand(
+                                10000000017L,
+                                AccountType.SAVINGS,
+                                "INR");
+
+                when(accountRepository.existsByCustomerIdAndAccountType(
+                                any(CustomerId.class),
+                                eq(AccountType.SAVINGS.name())))
+                                .thenReturn(false);
+
+                when(accountIdGenerator.nextAccountId())
+                                .thenReturn(1L);
+
+                when(accountNumberGenerator.nextAccountNumber())
+                                .thenReturn("123456789012");
+
+                when(accountRepository.existsByAccountNumber(
+                                any(AccountNumber.class)))
+                                .thenReturn(false);
+
+                when(accountRepository.save(any(Account.class)))
+                                .thenAnswer(invocation -> invocation.getArgument(0));
+
+                AccountResponse response = service.create(command);
+
+                assertNotNull(response);
+                assertEquals(1L, response.accountId());
+                assertEquals(10000000017L, response.customerId());
+                assertEquals("123456789012", response.accountNumber());
+                assertEquals(AccountType.SAVINGS, response.accountType());
+                assertEquals(AccountStatus.PENDING, response.status());
+                assertEquals("INR", response.currency());
+
+                verify(accountRepository).save(any(Account.class));
+        }
 
-        when(accountRepository.existsByCustomerIdAndAccountType(
-                any(CustomerId.class),
-                eq(AccountType.SAVINGS.name())))
-                .thenReturn(false);
+        @Test
+        void shouldRejectDuplicateCustomerAccountType() {
+                CreateAccountCommand command = new CreateAccountCommand(10000000017L, AccountType.SAVINGS, "INR");
+                when(accountRepository.existsByCustomerIdAndAccountType(any(CustomerId.class),
+                                eq(AccountType.SAVINGS.name()))).thenReturn(true);
+                DuplicateAccountException exception = assertThrows(DuplicateAccountException.class,
+                                () -> service.create(command));
+                assertEquals("Account already exists for customer and account type", exception.getMessage());
+                verify(accountRepository, never()).save(any());
+                verify(accountIdGenerator, never()).nextAccountId();
+        }
 
-        when(accountIdGenerator.nextAccountId())
-                .thenReturn(1L);
+        @Test
+        void shouldRejectDuplicateAccountNumber() {
+                CreateAccountCommand command = new CreateAccountCommand(10000000017L, AccountType.SAVINGS, "INR");
+                when(accountRepository.existsByCustomerIdAndAccountType(any(CustomerId.class),
+                                eq(AccountType.SAVINGS.name()))).thenReturn(false);
+                when(accountIdGenerator.nextAccountId()).thenReturn(1L);
+                when(accountNumberGenerator.nextAccountNumber()).thenReturn("123456789012");
+                when(accountRepository.existsByAccountNumber(any(AccountNumber.class))).thenReturn(true);
+                DuplicateAccountException exception = assertThrows(DuplicateAccountException.class,
+                                () -> service.create(command));
+                assertEquals("Account number already exists: 123456789012", exception.getMessage());
+                verify(accountRepository, never()).save(any());
+        }
 
-        when(accountNumberGenerator.nextAccountNumber())
-                .thenReturn("123456789012");
-
-        when(accountRepository.existsByAccountNumber(
-                any(AccountNumber.class)))
-                .thenReturn(false);
-
-        when(accountRepository.save(any(Account.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        @Test
+        void shouldGetAccountById() {
 
-        AccountResponse response = service.create(command);
+                Account account = createAccount();
 
-        assertNotNull(response);
-        assertEquals(1L, response.accountId());
-        assertEquals(10000000017L, response.customerId());
-        assertEquals("123456789012", response.accountNumber());
-        assertEquals(AccountType.SAVINGS, response.accountType());
-        assertEquals(AccountStatus.PENDING, response.status());
-        assertEquals("INR", response.currency());
+                when(accountRepository.findById(AccountId.of(1L)))
+                                .thenReturn(Optional.of(account));
 
-        verify(accountRepository).save(any(Account.class));
-    }
+                AccountResponse response = service.getById(1L);
 
-    @Test
-    void shouldRejectDuplicateCustomerAccountType() {
+                assertEquals(1L, response.accountId());
+                assertEquals(10000000017L, response.customerId());
+                assertEquals("123456789012", response.accountNumber());
+                assertEquals(AccountType.SAVINGS, response.accountType());
+                assertEquals(AccountStatus.PENDING, response.status());
+                assertEquals("INR", response.currency());
+        }
 
-        CreateAccountCommand command =
-                new CreateAccountCommand(
-                        10000000017L,
-                        AccountType.SAVINGS,
-                        "INR");
+        @Test
+        void shouldGetAccountByAccountNumber() {
 
-        when(accountRepository.existsByCustomerIdAndAccountType(
-                any(CustomerId.class),
-                eq(AccountType.SAVINGS.name())))
-                .thenReturn(true);
+                Account account = createAccount();
 
-        IllegalStateException exception =
-                assertThrows(
-                        IllegalStateException.class,
-                        () -> service.create(command));
+                when(accountRepository.findByAccountNumber(
+                                AccountNumber.of("123456789012")))
+                                .thenReturn(Optional.of(account));
 
-        assertEquals(
-                "Account already exists for customer and account type",
-                exception.getMessage());
+                AccountResponse response = service.getByAccountNumber("123456789012");
 
-        verify(accountRepository, never()).save(any());
-        verify(accountIdGenerator, never()).nextAccountId();
-    }
+                assertEquals(1L, response.accountId());
+                assertEquals("123456789012", response.accountNumber());
+        }
 
-    @Test
-    void shouldRejectDuplicateAccountNumber() {
+        @Test
+        void shouldThrowWhenAccountDoesNotExist() {
+                when(accountRepository.findById(AccountId.of(999L))).thenReturn(Optional.empty());
+                AccountNotFoundException exception = assertThrows(AccountNotFoundException.class,
+                                () -> service.getById(999L));
+                assertEquals("Account not found: 999", exception.getMessage());
+        }
 
-        CreateAccountCommand command =
-                new CreateAccountCommand(
-                        10000000017L,
-                        AccountType.SAVINGS,
-                        "INR");
+        @Test
+        void shouldActivateAccount() {
 
-        when(accountRepository.existsByCustomerIdAndAccountType(
-                any(CustomerId.class),
-                eq(AccountType.SAVINGS.name())))
-                .thenReturn(false);
+                Account account = createAccount();
 
-        when(accountIdGenerator.nextAccountId())
-                .thenReturn(1L);
+                when(accountRepository.findById(AccountId.of(1L)))
+                                .thenReturn(Optional.of(account));
 
-        when(accountNumberGenerator.nextAccountNumber())
-                .thenReturn("123456789012");
+                when(accountRepository.save(any(Account.class)))
+                                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(accountRepository.existsByAccountNumber(
-                any(AccountNumber.class)))
-                .thenReturn(true);
+                AccountResponse response = service.activate(1L);
 
-        IllegalStateException exception =
-                assertThrows(
-                        IllegalStateException.class,
-                        () -> service.create(command));
+                assertEquals(AccountStatus.ACTIVE, response.status());
 
-        assertEquals(
-                "Account number already exists: 123456789012",
-                exception.getMessage());
+                verify(accountRepository).save(account);
+        }
 
-        verify(accountRepository, never()).save(any());
-    }
+        @Test
+        void shouldFreezeAccount() {
 
-    @Test
-    void shouldGetAccountById() {
+                Account account = createAccount();
+                account.activate();
 
-        Account account = createAccount();
+                when(accountRepository.findById(AccountId.of(1L)))
+                                .thenReturn(Optional.of(account));
 
-        when(accountRepository.findById(AccountId.of(1L)))
-                .thenReturn(Optional.of(account));
+                when(accountRepository.save(any(Account.class)))
+                                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        AccountResponse response = service.getById(1L);
+                AccountResponse response = service.freeze(1L);
 
-        assertEquals(1L, response.accountId());
-        assertEquals(10000000017L, response.customerId());
-        assertEquals("123456789012", response.accountNumber());
-        assertEquals(AccountType.SAVINGS, response.accountType());
-        assertEquals(AccountStatus.PENDING, response.status());
-        assertEquals("INR", response.currency());
-    }
+                assertEquals(AccountStatus.FROZEN, response.status());
 
-    @Test
-    void shouldGetAccountByAccountNumber() {
+                verify(accountRepository).save(account);
+        }
 
-        Account account = createAccount();
+        @Test
+        void shouldMakeAccountDormant() {
 
-        when(accountRepository.findByAccountNumber(
-                AccountNumber.of("123456789012")))
-                .thenReturn(Optional.of(account));
+                Account account = createAccount();
+                account.activate();
 
-        AccountResponse response =
-                service.getByAccountNumber("123456789012");
+                when(accountRepository.findById(AccountId.of(1L)))
+                                .thenReturn(Optional.of(account));
 
-        assertEquals(1L, response.accountId());
-        assertEquals("123456789012", response.accountNumber());
-    }
+                when(accountRepository.save(any(Account.class)))
+                                .thenAnswer(invocation -> invocation.getArgument(0));
 
-    @Test
-    void shouldThrowWhenAccountDoesNotExist() {
+                AccountResponse response = service.makeDormant(1L);
 
-        when(accountRepository.findById(AccountId.of(999L)))
-                .thenReturn(Optional.empty());
+                assertEquals(AccountStatus.DORMANT, response.status());
 
-        IllegalArgumentException exception =
-                assertThrows(
-                        IllegalArgumentException.class,
-                        () -> service.getById(999L));
+                verify(accountRepository).save(account);
+        }
 
-        assertEquals(
-                "Account not found: 999",
-                exception.getMessage());
-    }
+        @Test
+        void shouldCloseAccount() {
 
-    @Test
-    void shouldActivateAccount() {
+                Account account = createAccount();
+                account.activate();
 
-        Account account = createAccount();
+                when(accountRepository.findById(AccountId.of(1L)))
+                                .thenReturn(Optional.of(account));
 
-        when(accountRepository.findById(AccountId.of(1L)))
-                .thenReturn(Optional.of(account));
+                when(accountRepository.save(any(Account.class)))
+                                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(accountRepository.save(any(Account.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                AccountResponse response = service.close(1L);
 
-        AccountResponse response = service.activate(1L);
+                assertEquals(AccountStatus.CLOSED, response.status());
 
-        assertEquals(AccountStatus.ACTIVE, response.status());
+                verify(accountRepository).save(account);
+        }
 
-        verify(accountRepository).save(account);
-    }
+        private Account createAccount() {
 
-    @Test
-    void shouldFreezeAccount() {
-
-        Account account = createAccount();
-        account.activate();
-
-        when(accountRepository.findById(AccountId.of(1L)))
-                .thenReturn(Optional.of(account));
-
-        when(accountRepository.save(any(Account.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        AccountResponse response = service.freeze(1L);
-
-        assertEquals(AccountStatus.FROZEN, response.status());
-
-        verify(accountRepository).save(account);
-    }
-
-    @Test
-    void shouldMakeAccountDormant() {
-
-        Account account = createAccount();
-        account.activate();
-
-        when(accountRepository.findById(AccountId.of(1L)))
-                .thenReturn(Optional.of(account));
-
-        when(accountRepository.save(any(Account.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        AccountResponse response = service.makeDormant(1L);
-
-        assertEquals(AccountStatus.DORMANT, response.status());
-
-        verify(accountRepository).save(account);
-    }
-
-    @Test
-    void shouldCloseAccount() {
-
-        Account account = createAccount();
-
-        when(accountRepository.findById(AccountId.of(1L)))
-                .thenReturn(Optional.of(account));
-
-        when(accountRepository.save(any(Account.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        AccountResponse response = service.close(1L);
-
-        assertEquals(AccountStatus.CLOSED, response.status());
-
-        verify(accountRepository).save(account);
-    }
-
-    private Account createAccount() {
-
-        return Account.create(
-                AccountId.of(1L),
-                AccountNumber.of("123456789012"),
-                CustomerId.of(10000000017L),
-                AccountType.SAVINGS,
-                com.rahulsmgv.cbs.account.domain.valueobject.Currency.inr());
-    }
+                return Account.create(
+                                AccountId.of(1L),
+                                AccountNumber.of("123456789012"),
+                                CustomerId.of(10000000017L),
+                                AccountType.SAVINGS,
+                                com.rahulsmgv.cbs.account.domain.valueobject.Currency.inr());
+        }
 }

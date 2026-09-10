@@ -150,4 +150,16 @@ public class AccountController {
 
         return ResponseEntity.ok(response);
     }
+
+        @PostMapping("/{accountId}/unfreeze")
+        public ResponseEntity<AccountResponse> unfreezeAccount( @PathVariable Long accountId) {
+
+        log.info( "Execution step started: unfreezeAccount for accountId={}", accountId);
+
+        AccountResponse response = accountApplicationService.unfreeze(accountId);
+
+        log.info( "Execution step completed: unfreezeAccount for accountId={}, status={}", accountId, response.status());
+
+        return ResponseEntity.ok(response);
+        }
 }

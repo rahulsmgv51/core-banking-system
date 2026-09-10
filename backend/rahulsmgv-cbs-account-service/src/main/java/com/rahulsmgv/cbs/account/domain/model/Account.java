@@ -116,26 +116,44 @@ public class Account {
                     "Frozen account cannot be activated directly");
         }
 
+        if (status != AccountStatus.PENDING
+                && status != AccountStatus.DORMANT) {
+
+            throw new IllegalStateException(
+                    "Account cannot be activated from status: " + status);
+        }
+
         status = AccountStatus.ACTIVE;
         touch();
     }
 
     public void freeze() {
 
-        if (status == AccountStatus.CLOSED) {
+        if (status != AccountStatus.ACTIVE) {
             throw new IllegalStateException(
-                    "Closed account cannot be frozen");
+                    "Only active account can be frozen");
         }
 
         status = AccountStatus.FROZEN;
         touch();
     }
 
+    public void unfreeze() {
+
+        if (status != AccountStatus.FROZEN) {
+            throw new IllegalStateException(
+                    "Only frozen account can be unfrozen");
+        }
+
+        status = AccountStatus.ACTIVE;
+        touch();
+    }
+
     public void makeDormant() {
 
-        if (status == AccountStatus.CLOSED) {
+        if (status != AccountStatus.ACTIVE) {
             throw new IllegalStateException(
-                    "Closed account cannot become dormant");
+                    "Only active account can become dormant");
         }
 
         status = AccountStatus.DORMANT;
@@ -147,6 +165,11 @@ public class Account {
         if (status == AccountStatus.CLOSED) {
             throw new IllegalStateException(
                     "Account is already closed");
+        }
+
+        if (status == AccountStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Pending account cannot be closed");
         }
 
         status = AccountStatus.CLOSED;

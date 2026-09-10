@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.rahulsmgv.cbs.account.exception.AccountNotFoundException;
+import com.rahulsmgv.cbs.account.exception.DuplicateAccountException;
 
 @Service
 @Transactional
@@ -50,7 +52,7 @@ public class AccountApplicationService {
                 customerId,
                 command.accountType().name())) {
 
-            throw new IllegalStateException(
+            throw new DuplicateAccountException(
                     "Account already exists for customer and account type");
         }
 
@@ -62,8 +64,7 @@ public class AccountApplicationService {
         Currency currency = Currency.of(command.currency());
 
         if (accountRepository.existsByAccountNumber(accountNumber)) {
-            throw new IllegalStateException(
-                    "Account number already exists: " + accountNumber.value());
+                throw new DuplicateAccountException("Account number already exists: " + accountNumber.value());
         }
 
         Account account = Account.create(
@@ -92,7 +93,7 @@ public class AccountApplicationService {
         Account account = accountRepository
                 .findById(AccountId.of(accountId))
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new AccountNotFoundException(
                                 "Account not found: " + accountId));
 
         log.info(
@@ -113,7 +114,7 @@ public class AccountApplicationService {
         Account account = accountRepository
                 .findByAccountNumber(AccountNumber.of(accountNumber))
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new AccountNotFoundException(
                                 "Account not found: " + accountNumber));
 
         log.info(
@@ -160,6 +161,20 @@ public class AccountApplicationService {
         return toResponse(updatedAccount);
     }
 
+    public AccountResponse unfreeze(Long accountId) {
+
+        log.info( "Execution step started: unfreeze for accountId={}", accountId);
+
+        Account account = getAccount(accountId);
+
+        account.unfreeze();
+
+        Account updatedAccount = accountRepository.save(account);
+
+        log.info( "Execution step completed: unfreeze for accountId={}, status={}", accountId, updatedAccount.status());
+        return toResponse(updatedAccount);
+        }
+
     public AccountResponse makeDormant(Long accountId) {
 
         log.info("Execution step started: makeDormant for accountId={}", accountId);
@@ -203,7 +218,7 @@ public class AccountApplicationService {
         return accountRepository
                 .findById(AccountId.of(accountId))
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new AccountNotFoundException(
                                 "Account not found: " + accountId));
     }
 

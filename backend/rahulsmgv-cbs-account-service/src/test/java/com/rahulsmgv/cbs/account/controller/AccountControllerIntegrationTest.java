@@ -2,7 +2,6 @@ package com.rahulsmgv.cbs.account.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rahulsmgv.cbs.account.domain.enums.AccountType;
 import com.rahulsmgv.cbs.account.infrastructure.persistence.jpa.repository.AccountJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,21 +76,18 @@ class AccountControllerIntegrationTest {
                 }
                 """;
 
-        String response =
-                mockMvc.perform(
-                        post("/api/v1/accounts")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(request))
-                        .andExpect(status().isCreated())
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString();
+        String response = mockMvc.perform(
+                post("/api/v1/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        JsonNode json =
-                objectMapper.readTree(response);
+        JsonNode json = objectMapper.readTree(response);
 
-        long accountId =
-                json.get("accountId").asLong();
+        long accountId = json.get("accountId").asLong();
 
         mockMvc.perform(
                 get("/api/v1/accounts/" + accountId))
@@ -119,21 +115,18 @@ class AccountControllerIntegrationTest {
                 }
                 """;
 
-        String response =
-                mockMvc.perform(
-                        post("/api/v1/accounts")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(request))
-                        .andExpect(status().isCreated())
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString();
+        String response = mockMvc.perform(
+                post("/api/v1/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        JsonNode json =
-                objectMapper.readTree(response);
+        JsonNode json = objectMapper.readTree(response);
 
-        String accountNumber =
-                json.get("accountNumber").asText();
+        String accountNumber = json.get("accountNumber").asText();
 
         mockMvc.perform(
                 get("/api/v1/accounts/number/" + accountNumber))
@@ -157,20 +150,18 @@ class AccountControllerIntegrationTest {
                 }
                 """;
 
-        String response =
-                mockMvc.perform(
-                        post("/api/v1/accounts")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(request))
-                        .andExpect(status().isCreated())
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString();
+        String response = mockMvc.perform(
+                post("/api/v1/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        long accountId =
-                objectMapper.readTree(response)
-                        .get("accountId")
-                        .asLong();
+        long accountId = objectMapper.readTree(response)
+                .get("accountId")
+                .asLong();
 
         mockMvc.perform(
                 post("/api/v1/accounts/"
@@ -194,25 +185,27 @@ class AccountControllerIntegrationTest {
                 }
                 """;
 
-        String response =
-                mockMvc.perform(
-                        post("/api/v1/accounts")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(request))
-                        .andExpect(status().isCreated())
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString();
+        String response = mockMvc.perform(
+                post("/api/v1/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        long accountId =
-                objectMapper.readTree(response)
-                        .get("accountId")
-                        .asLong();
+        long accountId = objectMapper.readTree(response)
+                .get("accountId")
+                .asLong();
 
         mockMvc.perform(
-                post("/api/v1/accounts/"
-                        + accountId
-                        + "/freeze"))
+                post("/api/v1/accounts/" + accountId + "/activate"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status")
+                        .value("ACTIVE"));
+
+        mockMvc.perform(
+                post("/api/v1/accounts/" + accountId + "/freeze"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status")
                         .value("FROZEN"));
@@ -229,25 +222,27 @@ class AccountControllerIntegrationTest {
                 }
                 """;
 
-        String response =
-                mockMvc.perform(
-                        post("/api/v1/accounts")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(request))
-                        .andExpect(status().isCreated())
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString();
+        String response = mockMvc.perform(
+                post("/api/v1/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        long accountId =
-                objectMapper.readTree(response)
-                        .get("accountId")
-                        .asLong();
+        long accountId = objectMapper.readTree(response)
+                .get("accountId")
+                .asLong();
 
         mockMvc.perform(
-                post("/api/v1/accounts/"
-                        + accountId
-                        + "/dormant"))
+                post("/api/v1/accounts/" + accountId + "/activate"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status")
+                        .value("ACTIVE"));
+
+        mockMvc.perform(
+                post("/api/v1/accounts/" + accountId + "/dormant"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status")
                         .value("DORMANT"));
@@ -264,25 +259,27 @@ class AccountControllerIntegrationTest {
                 }
                 """;
 
-        String response =
-                mockMvc.perform(
-                        post("/api/v1/accounts")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(request))
-                        .andExpect(status().isCreated())
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString();
+        String response = mockMvc.perform(
+                post("/api/v1/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        long accountId =
-                objectMapper.readTree(response)
-                        .get("accountId")
-                        .asLong();
+        long accountId = objectMapper.readTree(response)
+                .get("accountId")
+                .asLong();
 
         mockMvc.perform(
-                post("/api/v1/accounts/"
-                        + accountId
-                        + "/close"))
+                post("/api/v1/accounts/" + accountId + "/activate"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status")
+                        .value("ACTIVE"));
+
+        mockMvc.perform(
+                post("/api/v1/accounts/" + accountId + "/close"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status")
                         .value("CLOSED"));
@@ -307,9 +304,24 @@ class AccountControllerIntegrationTest {
                 .andExpect(status().isCreated());
 
         mockMvc.perform(
-        post("/api/v1/accounts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-        .andExpect(status().isConflict());  // 409 Conflict
+                post("/api/v1/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isConflict()); // 409 Conflict
+    }
+
+    @Test
+    void shouldReturn404WhenAccountDoesNotExist() throws Exception {
+
+        mockMvc.perform(
+                get("/api/v1/accounts/99999999999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error")
+                        .value("ACCOUNT_NOT_FOUND"))
+                .andExpect(jsonPath("$.message")
+                        .value("Account not found: 99999999999"))
+                .andExpect(jsonPath("$.path")
+                        .value("/api/v1/accounts/99999999999"));
     }
 }
